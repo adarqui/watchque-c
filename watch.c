@@ -73,32 +73,48 @@ ret_t watch_cb(blob_t *b, char *buf, int n) {
  int ni = 0;
  RET_INIT;
 
+ stat_inc_cbCalled(b->s);
+
+ // initiate multi
+ r_multi(b->r->h);
+
  while(ni < n) {
   ie = (buf)+ni;
 
-dump_inotify_event(ie);
+//dump_inotify_event(ie);
 
   w = b->w[ie->wd];
   ni += sizeof(struct inotify_event) + ie->len;
 
   if(ie->wd < 0) {
+   dump_inotify_event(ie);
+   stat_inc_badEvent(b->s);
    continue;
   }
 
-  if(ie->len) {
-//   dump_watch(w);
+  if(ie->len <= 0) {
+   dump_inotify_event(ie);
+   stat_inc_badEvent(b->s);
+   continue;
+  } else {
 
    if(!w) {
+    stat_inc_noWatcher(b->s);
     continue;
    }
 
    if(w->mask == 0) {
+    stat_inc_zeroMask(b->s);
     continue;
    }
   
-   _r = enqueue(b->r->h, w, ie);
+   _r = r_enqueue(b->r->h, w, ie);
+   stat_inc_goodEvent(b->s);
   }
  }
+
+ // exec
+ r_exec(b->r->h);
 
  RET_OK(NULL);
 }
@@ -114,10 +130,16 @@ ret_t watch_loop(blob_t *b) {
  while(1) {
   rc = select(b->wfd+1, &rfds, NULL, NULL, NULL);
   rc = ioctl(b->wfd, FIONREAD, &n);
+  stat_inc_fionreadBytes(b->s, n);
   do {
    char buf[n+1];
    nie = read(b->wfd, buf, n);
-//printf("nie %i n %i\n", nie, n);
+   if(nie < 0) {
+    stat_inc_badRead(b->s);
+    continue;
+   }
+   stat_inc_goodRead(b->s);
+   stat_inc_readBytes(b->s, nie);
    watch_cb(b, buf, nie);
   } while(0);
  }

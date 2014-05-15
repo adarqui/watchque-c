@@ -1,6 +1,46 @@
 #include "watch.h"
 
 
+void dump_stats(stats_t *s) {
+ if(!s) {
+  return;
+ }
+
+ printf(
+  "\nDumping stats:\n"
+  "\tgoodEvent: %llu\n"
+  "\tbadEvent: %llu\n"
+  "\tredisReConnect: %llu\n"
+  "\tdirAdded: %llu\n"
+  "\tdirRemoved: %llu\n"
+  "\tcbCalled: %llu\n"
+  "\tgoodEvent / cbCalled: %f\n"
+  "\tnoWatcher: %llu\n"
+  "\tzeroMask: %llu\n"
+  "\tgoodRead: %llu\n"
+  "\tbadRead: %llu\n"
+  "\tfionreadBytes: %llu\n"
+  "\treadBytes: %llu\n"
+  ,
+  s->goodEvent,
+  s->badEvent,
+  s->redisReConnect,
+  s->dirAdded,
+  s->dirRemoved,
+  s->cbCalled,
+  s->cbCalled == 0 ? 0 : (float)s->goodEvent / (float)s->cbCalled,
+  s->noWatcher,
+  s->zeroMask,
+  s->goodRead,
+  s->badRead,
+  s->fionreadBytes,
+  s->readBytes
+ );
+
+ return;
+}
+
+
 void dump_inotify_event(struct inotify_event *ie) {
  if(!ie) {
   return;
@@ -18,6 +58,8 @@ void dump_inotify_event(struct inotify_event *ie) {
   ie->len,
   ie->name
  );
+
+ return;
 }
 
 
@@ -45,6 +87,7 @@ void dump_watch(watch_t *w) {
   w->dest_type,
   w->mask
  );
+
  return;
 }
 
@@ -60,4 +103,6 @@ void dump_list(list_t *ll) {
  for(le = ll->head; le != NULL; le = le->next) {
   dump_watch((watch_t *)le->data);
  }
+
+ return;
 }

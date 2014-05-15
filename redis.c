@@ -1,20 +1,33 @@
 #include "watch.h"
 
 
-ret_t sadd_from_list(blob_t *b, list_t *ll) {
+ret_t r_sadd_from_list(blob_t *b, list_t *ll) {
  list_elm_t *le;
  watch_t *w;
  RET_INIT;
 
  for(le = ll->head; le != NULL; le = le->next) {
   w = le->data;
-  sadd(b->r->h, w);
+  r_sadd(b->r->h, w);
  }
 
  RET_OK(NULL);
 }
 
-ret_t sadd(redisContext *h, watch_t *w) {
+
+void r_multi(redisContext *h) {
+ freeReplyObject(redisCommand(h, "MULTI"));
+ return;
+}
+
+
+void r_exec(redisContext *h) {
+ freeReplyObject(redisCommand(h, "EXEC"));
+ return;
+}
+
+
+ret_t r_sadd(redisContext *h, watch_t *w) {
  redisReply *rr;
  RET_INIT;
 
@@ -27,7 +40,7 @@ ret_t sadd(redisContext *h, watch_t *w) {
 }
 
 
-ret_t enqueue(redisContext *h, watch_t *w, struct inotify_event *ie) {
+ret_t r_enqueue(redisContext *h, watch_t *w, struct inotify_event *ie) {
  redisReply *rr;
  RET_INIT;
 
@@ -52,4 +65,3 @@ ret_t enqueue(redisContext *h, watch_t *w, struct inotify_event *ie) {
 
  RET_OK(NULL);
 }
-

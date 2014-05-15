@@ -23,7 +23,13 @@ int main(int argc, char *argv[], char *env[]) {
 
  /* some maintenance, initialization */
 // memset(&flags, 0, sizeof(flags));
+ signal(SIGINT, sigint_handler);
+ _r = set_max_queued_events(MAX_EVENTS - 1);
+ if(RET_ISOK != RET_BOOL_TRUE) {
+   errx(1, "main: set_max_queued_events: %s\n", (char *)RET_V);
+ }
  memset(&b, 0, sizeof(b));
+ b.s = &global_stats;
  _r = list_init();
  ll = RET_V;
 // ev_init(&watch_ev, watch_cb);
@@ -68,7 +74,7 @@ int main(int argc, char *argv[], char *env[]) {
 
    w = ll->tail->data;
    /* it's safe to assume that, if parse_watch_multi succeeded, we can sadd that queue */
-   sadd(b.r->h, w);
+   r_sadd(b.r->h, w);
   }
  }
 

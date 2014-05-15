@@ -10,15 +10,17 @@
 #include <unistd.h>
 #include <ret.h>
 #include <dirent.h>
+#include <signal.h>
 #include <hiredis/hiredis.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <linux/inotify.h>
 
-#define MAX_EVENTS 1024
-#define MAX_BUCKETS (1024*20) // flaccid
+#define MAX_EVENTS 100000
+#define MAX_BUCKETS MAX_EVENTS+1 // flaccid
 #define BUF_LEN (sizeof(struct inotify_event)*MAX_EVENTS)
+
 
 typedef enum {
  WATCH_MASK_CREATE = IN_CREATE,
@@ -27,6 +29,7 @@ typedef enum {
  WATCH_MASK_RENAME = IN_MOVE,
  WATCH_MASK_CLOSE_WRITE = IN_CLOSE_WRITE
 } WATCH_MASK;
+
 
 typedef struct watch {
  char * dest;
@@ -41,6 +44,7 @@ typedef struct watch {
  int wd;
 } watch_t;
 
+
 typedef struct redis {
  char * host;
  int port;
@@ -48,9 +52,11 @@ typedef struct redis {
  redisContext *h;
 } redis_t;
 
+
 typedef struct flags {
  unsigned char d;
 } flags_t;
+
 
 typedef struct watch_lim {
  int x;
@@ -58,18 +64,38 @@ typedef struct watch_lim {
  int n;
 } watch_lim_t;
 
+
+typedef struct stats {
+ unsigned long long goodEvent;
+ unsigned long long badEvent;
+ unsigned long long redisReConnect;
+ unsigned long long dirAdded;
+ unsigned long long dirRemoved;
+ unsigned long long cbCalled;
+ unsigned long long noWatcher;
+ unsigned long long zeroMask;
+ unsigned long long goodRead;
+ unsigned long long badRead;
+ unsigned long long fionreadBytes;
+ unsigned long long readBytes;
+} stats_t;
+
+
 typedef struct blob {
  int wfd;
  watch_t *w[MAX_BUCKETS+1];
  watch_lim_t wl;
  redis_t *r;
  flags_t f;
+ stats_t *s;
 } blob_t;
+
 
 typedef struct list_elm {
  struct list_elm *next;
  void *data;
 } list_elm_t;
+
 
 typedef struct list {
  list_elm_t *head;
@@ -77,7 +103,10 @@ typedef struct list {
  int size;
 } list_t;
 
+
 extern int errno;
+stats_t global_stats;
+
 
 ret_t watch_cb(blob_t *, char *, int);
 ret_t watch_loop(blob_t *);
@@ -93,5 +122,7 @@ ret_t watch_fini(watch_t *);
 #include "inotify.h"
 #include "redis.h"
 #include "list.h"
+#include "stats.h"
+#include "sig.h"
 
 #endif

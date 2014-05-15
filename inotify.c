@@ -35,3 +35,23 @@ ret_t event_to_json(watch_t *w, struct inotify_event *ie, char *mask_s) {
 
 
 
+
+
+ret_t set_max_queued_events(int n) {
+ int fd;
+ char buf[32];
+ RET_INIT;
+
+ fd = open("/proc/sys/fs/inotify/max_queued_events", O_WRONLY);
+ if(fd < 0) {
+  RET_ERROR("unable to open /proc/sys/fs/inotify/max_queued_events");
+ } 
+
+ memset(buf, 0, sizeof(buf)-1);
+ snprintf(buf, sizeof(buf)-1, "%i", n);
+ if (write(fd, buf, strlen(buf)) < 0) {
+  RET_ERROR("unable to write");
+ } 
+
+ RET_OK(NULL);
+}
