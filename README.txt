@@ -6,6 +6,10 @@ what's left:
  - automatically add/remove directories if we are recursively watching
  - filters
  - tie up loose edge cases
+ - 'no recursiveness' flag, N, ie, cudN
+ - remove list after we have it in the watch_t array
+ - dynamically grow/shrink watch_t array
+ - RPush multi -> multi those big buf's of events
 
 no tests unfortunatetly.. extremely short timeline & started off as a prototype, bleh.
 
