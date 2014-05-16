@@ -28,11 +28,17 @@ ret_t parse_redis(char *s) {
  }
  
  r->port = atoi(p);
-
+/*
  r->h = redisConnect(r->host, r->port);
  if(!r->h) {
   RET_ERROR("redisConnect failed");
  }
+*/
+ _r = r_connect(r->host, r->port);
+ if(RET_ISOK != RET_BOOL_TRUE) {
+  errx(1, "parse_redis: r_connect failed: This shouldn't happen\n");
+ }
+ r->h = (redisContext *)RET_V;
 
  RET_OK(r);
 }
@@ -84,7 +90,7 @@ ret_t parse_event_masks(char *s, int *m) {
  */
 ret_t parse_watch_single(list_t *ll, char *class, char *queue, char *events, char *source, char *filter, int mask, int depth) {
  watch_t *w;
- list_t *l;
+// list_t *l;
  struct stat st;
  DIR *dir;
  RET_INIT;
@@ -120,7 +126,7 @@ ret_t parse_watch_single(list_t *ll, char *class, char *queue, char *events, cha
   RET_ERROR("list_insert: failed");
  }
 
- l = (list_t *)RET_V;
+// l = (list_t *)RET_V;
 
  if(S_ISDIR(st.st_mode)) {
   dir = opendir(source);
@@ -147,7 +153,7 @@ ret_t parse_watch_single(list_t *ll, char *class, char *queue, char *events, cha
 
 
 ret_t parse_watch_multi(list_t *ll, char *s) {
- int wmax, mask;
+ int mask;
  char *p, *class, *queue, *events, *sources, *filter;
  RET_INIT;
 

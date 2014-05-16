@@ -6,32 +6,75 @@ ret_t r_sadd_from_list(blob_t *b, list_t *ll) {
  watch_t *w;
  RET_INIT;
 
+ if(!b || !ll) {
+  RET_ERROR("r_sadd_from_list invalid arguments");
+ }
+
  for(le = ll->head; le != NULL; le = le->next) {
   w = le->data;
-  r_sadd(b->r->h, w);
+  r_sadd(b->r, w);
  }
 
  RET_OK(NULL);
 }
 
 
-void r_multi(redisContext *h) {
- freeReplyObject(redisCommand(h, "MULTI"));
- return;
-}
-
-
-void r_exec(redisContext *h) {
- freeReplyObject(redisCommand(h, "EXEC"));
- return;
-}
-
-
-ret_t r_sadd(redisContext *h, watch_t *w) {
+ret_t r_multi(redis_t *r) {
  redisReply *rr;
  RET_INIT;
 
- rr = redisCommand(h, "SADD resque:queues %s", w->queue);
+ if(!r) {
+  RET_ERROR("r_multi invalid arguments");
+ }
+
+ while(!(rr = redisCommand(r->h, "MULTI"))) {
+  _r = r_connect(r->host, r->port);
+  if(RET_ISOK == RET_BOOL_TRUE) {
+   r->h = (redisContext *) RET_V;
+  }
+ }
+ if(rr) {
+  freeReplyObject(rr);
+ }
+ RET_OK(NULL);
+}
+
+
+ret_t r_exec(redis_t *r) {
+ redisReply *rr;
+ RET_INIT;
+
+ if(!r) {
+  RET_ERROR("r_exec invalid arguments");
+ }
+
+ while(!(rr = redisCommand(r->h, "EXEC"))) {
+  _r = r_connect(r->host, r->port);
+  if(RET_ISOK == RET_BOOL_TRUE) {
+   r->h = (redisContext *) RET_V;
+  } 
+ }
+ if(rr) {
+  freeReplyObject(rr);
+ }
+ RET_OK(NULL);
+}
+
+
+ret_t r_sadd(redis_t *r, watch_t *w) {
+ redisReply *rr;
+ RET_INIT;
+
+ if(!r || !w) {
+  RET_ERROR("sadd invalid arguments");
+ }
+
+ while(!(rr = redisCommand(r->h, "SADD resque:queues %s", w->queue))) {
+  _r = r_connect(r->host, r->port);
+  if(RET_ISOK == RET_BOOL_TRUE) {
+   r->h = (redisContext *) RET_V;
+  } 
+ }
  if(rr) {
   freeReplyObject(rr);
  }
@@ -40,11 +83,11 @@ ret_t r_sadd(redisContext *h, watch_t *w) {
 }
 
 
-ret_t r_enqueue(redisContext *h, watch_t *w, struct inotify_event *ie) {
+ret_t r_enqueue(redis_t *r, watch_t *w, struct inotify_event *ie) {
  redisReply *rr;
  RET_INIT;
 
- if(!h || !w || !ie) {
+ if(!r || !w || !ie) {
   RET_ERROR("enqueue error");
  }
 
@@ -58,10 +101,38 @@ ret_t r_enqueue(redisContext *h, watch_t *w, struct inotify_event *ie) {
   RET_ERROR("event_to_json error");
  }
 
- rr = redisCommand(h, "RPUSH %s %s", w->queue_pre_formatted, (char *)RET_V);
+ while(!(rr = redisCommand(r->h, "RPUSH %s %s", w->queue_pre_formatted, (char *)RET_V))) {
+  _r = r_connect(r->host, r->port);
+  if(RET_ISOK == RET_BOOL_TRUE) {
+   r->h = (redisContext *) RET_V;
+  } 
+ }
  if(rr) {
   freeReplyObject(rr);
  }
 
  RET_OK(NULL);
+}
+
+
+ret_t r_connect(char * host, int port) {
+ redisContext *h;
+ stats_t *s;
+ RET_INIT;
+
+ if(!host || port < 0) {
+  errx(1, "r_connect: host = %p, port = %i, fatal error\n", host, port);
+ }
+
+ while(1) {
+  h = redisConnect(host, port);
+  if(h) {
+   RET_OK(h);
+  }
+  s = &global_stats;
+  stat_inc_redisReConnect(s);
+  sleep(1);
+ }
+
+ RET_ERROR("wtf?");
 }

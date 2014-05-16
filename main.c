@@ -13,7 +13,6 @@ int main(int argc, char *argv[], char *env[]) {
  blob_t b;
  watch_t *w;
  redis_t *redp;
-// flags_t flags;
  int i;
  RET_INIT;
 
@@ -22,7 +21,6 @@ int main(int argc, char *argv[], char *env[]) {
  }
 
  /* some maintenance, initialization */
-// memset(&flags, 0, sizeof(flags));
  signal(SIGINT, sigint_handler);
  _r = set_max_queued_events(MAX_EVENTS - 1);
  if(RET_ISOK != RET_BOOL_TRUE) {
@@ -74,7 +72,7 @@ int main(int argc, char *argv[], char *env[]) {
 
    w = ll->tail->data;
    /* it's safe to assume that, if parse_watch_multi succeeded, we can sadd that queue */
-   r_sadd(b.r->h, w);
+   r_sadd(b.r, w);
   }
  }
 

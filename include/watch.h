@@ -11,13 +11,14 @@
 #include <ret.h>
 #include <dirent.h>
 #include <signal.h>
+#include <time.h>
 #include <hiredis/hiredis.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <linux/inotify.h>
 
-#define MAX_EVENTS 100000
+#define MAX_EVENTS 500000
 #define MAX_BUCKETS MAX_EVENTS+1 // flaccid
 #define BUF_LEN (sizeof(struct inotify_event)*MAX_EVENTS)
 
@@ -66,6 +67,7 @@ typedef struct watch_lim {
 
 
 typedef struct stats {
+ time_t t;
  unsigned long long goodEvent;
  unsigned long long badEvent;
  unsigned long long redisReConnect;
@@ -76,6 +78,7 @@ typedef struct stats {
  unsigned long long zeroMask;
  unsigned long long goodRead;
  unsigned long long badRead;
+ unsigned long long badIoctl;
  unsigned long long fionreadBytes;
  unsigned long long readBytes;
 } stats_t;

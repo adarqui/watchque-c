@@ -76,7 +76,7 @@ ret_t watch_cb(blob_t *b, char *buf, int n) {
  stat_inc_cbCalled(b->s);
 
  // initiate multi
- r_multi(b->r->h);
+ r_multi(b->r);
 
  while(ni < n) {
   ie = (buf)+ni;
@@ -108,13 +108,13 @@ ret_t watch_cb(blob_t *b, char *buf, int n) {
     continue;
    }
   
-   _r = r_enqueue(b->r->h, w, ie);
+   _r = r_enqueue(b->r, w, ie);
    stat_inc_goodEvent(b->s);
   }
  }
 
  // exec
- r_exec(b->r->h);
+ r_exec(b->r);
 
  RET_OK(NULL);
 }
@@ -130,6 +130,9 @@ ret_t watch_loop(blob_t *b) {
  while(1) {
   rc = select(b->wfd+1, &rfds, NULL, NULL, NULL);
   rc = ioctl(b->wfd, FIONREAD, &n);
+  if(rc < 0) {
+   stat_inc_badIoctl(b->s);
+  }
   stat_inc_fionreadBytes(b->s, n);
   do {
    char buf[n+1];
@@ -189,4 +192,6 @@ ret_t watch_assign_to_blob_from_list(blob_t *b, list_t *ll) {
   w = (watch_t *) le->data;
   b->w[w->wd] = w;  
  }
+
+ RET_OK(NULL);
 }

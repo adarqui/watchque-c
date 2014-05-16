@@ -13,7 +13,7 @@ ret_t list_insert(list_t *ll, void *d) {
  if(!ll || !d) {
   RET_ERROR("list_insert");
  }
- le = (list_t *) calloc(1, sizeof(list_t *));
+ le = (list_elm_t *) calloc(1, sizeof(list_t *));
  if(!le) {
   RET_ERROR("calloc");
  }

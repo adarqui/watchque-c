@@ -19,6 +19,7 @@ void dump_stats(stats_t *s) {
   "\tzeroMask: %llu\n"
   "\tgoodRead: %llu\n"
   "\tbadRead: %llu\n"
+  "\tbadIoctl: %llu\n"
   "\tfionreadBytes: %llu\n"
   "\treadBytes: %llu\n"
   ,
@@ -33,6 +34,7 @@ void dump_stats(stats_t *s) {
   s->zeroMask,
   s->goodRead,
   s->badRead,
+  s->badIoctl,
   s->fionreadBytes,
   s->readBytes
  );
