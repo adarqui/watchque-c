@@ -12,6 +12,7 @@
 #include <dirent.h>
 #include <signal.h>
 #include <time.h>
+#include <regex.h>
 #include <hiredis/hiredis.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -32,6 +33,12 @@ typedef enum {
 } WATCH_MASK;
 
 
+typedef enum {
+ WATCH_CITIZEN_PARENT = 1,
+ WATCH_CITIZEN_CHILD
+} watch_citizen_t;
+
+
 typedef struct watch {
  char * dest;
  char * class;
@@ -43,6 +50,9 @@ typedef struct watch {
  int dest_type;
  int mask;
  int wd;
+ // space hack -> allocate this once, share it among all 'children' of the parent watch_t
+ regex_t *filter_re;
+ watch_citizen_t member;
 } watch_t;
 
 
@@ -70,6 +80,8 @@ typedef struct stats {
  time_t t;
  unsigned long long goodEvent;
  unsigned long long badEvent;
+ unsigned long long goodFilter;
+ unsigned long long badFilter;
  unsigned long long redisReConnect;
  unsigned long long dirAdded;
  unsigned long long dirRemoved;
@@ -116,8 +128,10 @@ ret_t watch_loop(blob_t *);
 ret_t watch_open(int, watch_t *);
 ret_t watch_open_from_list(int, list_t *);
 ret_t watch_assign_to_blob_from_list(blob_t *, list_t *);
-ret_t watch_init(char *, char *, char *, char *, char *, int);
+ret_t watch_init(watch_citizen_t, watch_t *, char *, char *, char *, char *, char *, int);
+ret_t watch_cloneRef(watch_t *, char *);
 ret_t watch_fini(watch_t *);
+
 
 #include "main.h"
 #include "dump.h"

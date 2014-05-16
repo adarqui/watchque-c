@@ -10,6 +10,8 @@ void dump_stats(stats_t *s) {
   "\nDumping stats:\n"
   "\tgoodEvent: %llu\n"
   "\tbadEvent: %llu\n"
+  "\tgoodFilter: %llu\n"
+  "\tbadFilter: %llu\n"
   "\tredisReConnect: %llu\n"
   "\tdirAdded: %llu\n"
   "\tdirRemoved: %llu\n"
@@ -25,6 +27,8 @@ void dump_stats(stats_t *s) {
   ,
   s->goodEvent,
   s->badEvent,
+  s->goodFilter,
+  s->badFilter,
   s->redisReConnect,
   s->dirAdded,
   s->dirRemoved,
@@ -77,8 +81,10 @@ void dump_watch(watch_t *w) {
   "\tevents: %s\n"
   "\tsources: %s\n"
   "\tfilter: %s\n"
+  "\tfilter_re: %p\n"
   "\tdest_type: %i\n"
   "\tmask: %i\n"
+  "\tcitizen: %i\n"
   ,
   w->class,
   w->queue,
@@ -86,8 +92,10 @@ void dump_watch(watch_t *w) {
   w->events,
   w->sources,
   w->filter,
+  w->filter_re,
   w->dest_type,
-  w->mask
+  w->mask,
+  w->member
  );
 
  return;

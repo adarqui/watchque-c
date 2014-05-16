@@ -7,7 +7,7 @@ ret_t parse_redis(char *);
 ret_t parse_event_masks(char *, int *);
 ret_t parse_watch(char *);
 ret_t parse_watch_multi(list_t *, char *);
-ret_t parse_watch_single(list_t *, char *, char *, char *, char *, char *, int, int);
+ret_t parse_watch_single(list_t *, watch_citizen_t, watch_t *, char *, char *, char *, char *, char *, regex_t *, int, int, int);
 ret_t parse_flag(flags_t *, char *);
 
 #endif

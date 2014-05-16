@@ -8,23 +8,35 @@ ret_t watch_fini(watch_t *w) {
   RET_ERROR("watch_fini invalid");
  }
 
- if(w->class) {
-  free(w->class);
+ if(w->member == WATCH_CITIZEN_PARENT) {
+  if(w->class) {
+   free(w->class);
+  }
+  if(w->queue) {
+   free(w->queue);
+  }
+  if(w->events) {
+   free(w->events);
+  }
+/*
+  if(w->sources) {
+   free(w->sources);
+  }
+*/
+  if(w->filter) {
+   free(w->filter);
+  }
+  if(w->filter_re) {
+   regfree(w->filter_re);
+  }
+  if(w->queue_pre_formatted) {
+   free(w->queue_pre_formatted);
+  }
  }
- if(w->queue) {
-  free(w->queue);
- }
- if(w->events) {
-  free(w->events);
- }
+
+ /* sources is allocated for both child and parent */
  if(w->sources) {
   free(w->sources);
- }
- if(w->filter) {
-  free(w->filter);
- }
- if(w->queue_pre_formatted) {
-  free(w->queue_pre_formatted);
  }
 
  free(w);
@@ -34,12 +46,48 @@ ret_t watch_fini(watch_t *w) {
 }
 
 
-ret_t watch_init(char *class, char *queue, char *events, char *source, char *filter, int mask) {
+
+ret_t watch_cloneRef(watch_t *wp, char *source) {
+ watch_t *wc;
+ RET_INIT;
+
+ if(!wp || !source) {
+  RET_ERROR("watch_cloneRef invalid arguments");
+ }
+
+ wc = (watch_t *) calloc(1, sizeof(watch_t));
+ if(!wc) {
+  errx(1, "watch_cloneRef: calloc failed");
+ }
+
+ wc->dest = wp->dest;
+ wc->class = wp->class;
+ wc->queue = wp->queue;
+ wc->queue_pre_formatted = wp->queue_pre_formatted;
+ wc->events = wp->events;
+ wc->sources = strdup(source);
+ wc->filter = wp->filter;
+ wc->filter_re = wp->filter_re;
+ wc->dest_type = wp->dest_type;
+ wc->mask = wp->mask;
+ wc->wd = 0;
+ wc->member = WATCH_CITIZEN_CHILD;
+
+ RET_OK(wc);
+}
+
+
+
+ret_t watch_init(watch_citizen_t citizen, watch_t *wp, char *class, char *queue, char *events, char *source, char *filter, int mask) {
  watch_t *w;
  RET_INIT;
 
  if(!class || !queue || !events || !source) {
   RET_ERROR("watch_init invalid");
+ }
+
+ if(citizen == WATCH_CITIZEN_CHILD) {
+  return watch_cloneRef(wp, source);
  }
 
  w = (watch_t *) calloc(1, sizeof(watch_t));
@@ -52,7 +100,21 @@ ret_t watch_init(char *class, char *queue, char *events, char *source, char *fil
  w->events = strdup(events);
  w->sources = strdup(source);
  if(filter) {
+  regex_t *filter_re;
+  int rgx;
   w->filter = strdup(filter);
+  filter_re = (regex_t *) calloc(1, sizeof(regex_t));
+  /*
+   * just consider these fatal immediately, for now
+   */
+  if(!filter_re) {
+   errx(1, "watch_init: calloc failed");
+  }
+  rgx = regcomp(filter_re, w->filter, 0);
+  if(rgx) {
+   errx(1, "watch_init: regcomp failed");
+  } 
+  w->filter_re = filter_re;
  }
 
  do {
@@ -62,6 +124,7 @@ ret_t watch_init(char *class, char *queue, char *events, char *source, char *fil
  } while(0);
 
  w->mask = mask;
+ w->member = WATCH_CITIZEN_PARENT;
 
  RET_OK(w);
 }
@@ -70,7 +133,7 @@ ret_t watch_init(char *class, char *queue, char *events, char *source, char *fil
 ret_t watch_cb(blob_t *b, char *buf, int n) {
  struct inotify_event *ie;
  watch_t *w;
- int ni = 0;
+ int ni = 0, ri;
  RET_INIT;
 
  stat_inc_cbCalled(b->s);
@@ -108,8 +171,24 @@ ret_t watch_cb(blob_t *b, char *buf, int n) {
     continue;
    }
   
-   _r = r_enqueue(b->r, w, ie);
    stat_inc_goodEvent(b->s);
+
+   if(w->filter_re) {
+    char full_path[strlen(w->sources)+1+strlen(ie->name)+1+2];
+    snprintf(full_path, sizeof(full_path)-1, "%s/%s", w->sources, ie->name);
+    ri = regexec(w->filter_re, full_path, 0, NULL, 0);
+    if(!ri) {
+     /*
+      * Match
+      */
+     stat_inc_goodFilter(b->s);
+    } else {
+     stat_inc_badFilter(b->s);
+     continue;
+    }
+   }
+
+   _r = r_enqueue(b->r, w, ie);
   }
  }
 

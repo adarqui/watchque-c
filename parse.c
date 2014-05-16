@@ -74,6 +74,9 @@ ret_t parse_event_masks(char *s, int *m) {
     *m |= WATCH_MASK_RENAME;
     break;
    }
+   case 'N': {
+    break;
+   }
    default: {
     RET_ERROR("unknown event to mask");
    }
@@ -88,9 +91,8 @@ ret_t parse_event_masks(char *s, int *m) {
 /*
  * class, queue, events, source, filter
  */
-ret_t parse_watch_single(list_t *ll, char *class, char *queue, char *events, char *source, char *filter, int mask, int depth) {
+ret_t parse_watch_single(list_t *ll, watch_citizen_t citizen, watch_t *wp, char *class, char *queue, char *events, char *source, char *filter, regex_t *re_filter, int mask, int depth, int recursive_onoff) {
  watch_t *w;
-// list_t *l;
  struct stat st;
  DIR *dir;
  RET_INIT;
@@ -103,14 +105,14 @@ ret_t parse_watch_single(list_t *ll, char *class, char *queue, char *events, cha
   RET_ERROR("stat failed");
  }
 
- if(!S_ISDIR(st.st_mode) && depth != 0) {
+ if((!recursive_onoff && depth != 0) || (!S_ISDIR(st.st_mode) && depth != 0)) {
   /*
    * Don't add this, it's a file >= 1 levels deep
    */
   RET_OK(NULL);
  }
 
- _r = watch_init(class, queue, events, source, filter, mask);
+ _r = watch_init(citizen, wp, class, queue, events, source, filter, mask);
  if(RET_ISOK != RET_BOOL_TRUE) {
   RET_ERROR("watch_init failed");
  }
@@ -119,14 +121,11 @@ ret_t parse_watch_single(list_t *ll, char *class, char *queue, char *events, cha
  if(!w) {
   RET_ERROR("w == null");
  }
-//dump_watch(w);
 
  _r = list_insert(ll, w);
  if(RET_ISOK != RET_BOOL_TRUE) {
   RET_ERROR("list_insert: failed");
  }
-
-// l = (list_t *)RET_V;
 
  if(S_ISDIR(st.st_mode)) {
   dir = opendir(source);
@@ -143,7 +142,7 @@ ret_t parse_watch_single(list_t *ll, char *class, char *queue, char *events, cha
     do {
      char buf[strlen(source) + 1 + strlen(dp->d_name) + 2];
      snprintf(buf, sizeof(buf)-1, "%s/%s", source, dp->d_name);
-     _r = parse_watch_single(ll, class, queue, events, buf, filter, mask, depth+1);
+     _r = parse_watch_single(ll, WATCH_CITIZEN_CHILD, w, class, queue, events, buf, filter, w->filter_re, mask, depth+1, recursive_onoff);
     } while(0);
    }
   }
@@ -153,20 +152,13 @@ ret_t parse_watch_single(list_t *ll, char *class, char *queue, char *events, cha
 
 
 ret_t parse_watch_multi(list_t *ll, char *s) {
- int mask;
+ int mask, recursive_onoff = 1;
  char *p, *class, *queue, *events, *sources, *filter;
  RET_INIT;
 
  if(!s) {
   RET_ERROR("null argument");
  } 
-
-/*
- w = (watch_t *) calloc(1, sizeof(watch_t)); 
- if(!w) {
-  RET_ERROR("calloc error");
- }
-*/
 
  p = strtok(s, ":");
  if(!p) {
@@ -185,6 +177,13 @@ ret_t parse_watch_multi(list_t *ll, char *s) {
   RET_ERROR("invalid watch syntax (events)");
  }
  events = strdup(p);
+
+ /*
+  * flaccid - look for an 'N' for, no recursiveness
+  */
+ if(strchr(events, 'N')) {
+  recursive_onoff = 0;
+ }
  
  p = strtok(NULL, ":");
  if(!p) {
@@ -211,7 +210,7 @@ ret_t parse_watch_multi(list_t *ll, char *s) {
  }
 
  while(p) {
-  _r = parse_watch_single(ll, class, queue, events, p, filter, mask, 0);
+  _r = parse_watch_single(ll, WATCH_CITIZEN_PARENT, NULL, class, queue, events, p, filter, NULL, mask, 0, recursive_onoff);
   if(RET_ISOK != RET_BOOL_TRUE) {
    printf("parse_watch_multi: error adding: %s\n", p);
   }
