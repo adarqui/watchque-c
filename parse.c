@@ -133,19 +133,29 @@ ret_t parse_watch_single(list_t *ll, watch_citizen_t citizen, watch_t *wp, char 
    struct dirent *dp;
    while((dp = readdir(dir)) != NULL) {
     int len = strlen(dp->d_name);
+/*
     if(DT_DIR != dp->d_type) {
+puts("5");
      continue;
     }
+*/
     if((len == 1 && dp->d_name[0] == '.') || (len == 2 && dp->d_name[0] == '.' && dp->d_name[1] == '.')) {
      continue;
     }
-    do {
+    if(1) {
+     struct stat st_n;
      char buf[strlen(source) + 1 + strlen(dp->d_name) + 2];
      int n;
      n = snprintf(buf, sizeof(buf)-1, "%s/%s", source, dp->d_name);
      buf[n] = '\0';
+     if(stat(buf, &st_n) < 0) {
+      continue;
+     }
+     if(!S_ISDIR(st_n.st_mode)) {
+      continue;
+     }
      _r = parse_watch_single(ll, WATCH_CITIZEN_CHILD, w, class, queue, events, buf, filter, w->filter_re, mask, depth+1, recursive_onoff);
-    } while(0);
+    }
    }
   }
  }
