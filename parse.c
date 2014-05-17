@@ -141,7 +141,9 @@ ret_t parse_watch_single(list_t *ll, watch_citizen_t citizen, watch_t *wp, char 
     }
     do {
      char buf[strlen(source) + 1 + strlen(dp->d_name) + 2];
-     snprintf(buf, sizeof(buf)-1, "%s/%s", source, dp->d_name);
+     int n;
+     n = snprintf(buf, sizeof(buf)-1, "%s/%s", source, dp->d_name);
+     buf[n] = '\0';
      _r = parse_watch_single(ll, WATCH_CITIZEN_CHILD, w, class, queue, events, buf, filter, w->filter_re, mask, depth+1, recursive_onoff);
     } while(0);
    }

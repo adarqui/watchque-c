@@ -119,7 +119,9 @@ ret_t watch_init(watch_citizen_t citizen, watch_t *wp, char *class, char *queue,
 
  do {
   char buf[strlen("resque:queue")+1+strlen(w->sources)+1];
-  snprintf(buf, sizeof(buf)-1, "%s:%s", "resque:queue", w->queue);
+  int n;
+  n = snprintf(buf, sizeof(buf)-1, "%s:%s", "resque:queue", w->queue);
+  buf[n] = '\0';
   w->queue_pre_formatted = strdup(buf);
  } while(0);
 
@@ -175,7 +177,10 @@ ret_t watch_cb(blob_t *b, char *buf, int n) {
 
    if(w->filter_re) {
     char full_path[strlen(w->sources)+1+strlen(ie->name)+1+2];
-    snprintf(full_path, sizeof(full_path)-1, "%s/%s", w->sources, ie->name);
+    int n;
+    n = snprintf(full_path, sizeof(full_path)-1, "%s/%s", w->sources, ie->name);
+    full_path[n] = '\0';
+
     ri = regexec(w->filter_re, full_path, 0, NULL, 0);
     if(!ri) {
      /*
