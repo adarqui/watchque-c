@@ -18,5 +18,7 @@
 #define stat_inc_badIoctl(s) s->badIoctl++
 #define stat_inc_fionreadBytes(s, n) s->fionreadBytes += n
 #define stat_inc_readBytes(s, n) s->readBytes += n
+#define stat_inc_watchers(s) s->watchers++
+#define stat_dec_watchers(s) s->watchers--
 
 #endif

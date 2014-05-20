@@ -1,17 +1,7 @@
 #include "watch.h"
 
-/*
-"{\"class\":\"class\",\"args\":[{\"filePath\":\"/tmp/k\",\"event\":\"CLOSE_WRITE\"}]}"
-*/
-
-
-
 int main(int argc, char *argv[], char *env[]) {
-// struct ev_loop *loop = ev_default_loop(0);
-// ev_io watch_ev;
- list_t *ll;
  blob_t b;
- watch_t *w;
  redis_t *redp;
  int i;
  RET_INIT;
@@ -28,11 +18,7 @@ int main(int argc, char *argv[], char *env[]) {
  }
  memset(&b, 0, sizeof(b));
  b.s = &global_stats;
- _r = list_init();
- ll = RET_V;
-// ev_init(&watch_ev, watch_cb);
  b.wfd = inotify_init();
-// ev_io_set(&watch_ev, wfd, EV_READ);
 
  _r = parse_redis(argv[1]);
  if(RET_ISOK != RET_BOOL_TRUE) {
@@ -50,47 +36,24 @@ int main(int argc, char *argv[], char *env[]) {
     errx(1, "parse_flag: error: %s\n", (char *)RET_V);
    }
   } else {
-/*
-   _r = parse_watch(argv[i]);
-   if(RET_ISOK != RET_BOOL_TRUE) {
-    errx(1, "parse_watch: error: %s\n", (char *)RET_V);
-   }
-   w = RET_V;
-   dump_watch(w);
-   _r = watch_open(b.wfd, w);
-   if(RET_ISOK != RET_BOOL_TRUE) {
-    errx(1, "watch_open: error: %s\n", (char *)RET_V);
-   }
-//   b.w[w->wd] = w;
-   printf("w->wd %i\n", w->wd);
-   //sadd(b.r->h, w);
-*/
-   _r = parse_watch_multi(ll, argv[i]);
-   if(RET_ISOK != RET_BOOL_TRUE) {
-    errx(1, "parse_watch_multi: error: %s\n", (char *)RET_V);
-   }
 
-   w = ll->tail->data;
    /* it's safe to assume that, if parse_watch_multi succeeded, we can sadd that queue */
-   r_sadd(b.r, w);
+// FIXME
+//   r_sadd(b.r, w);
+   _r = parse_watch_multi(&b, argv[i]);
+   if(RET_ISOK != RET_BOOL_TRUE) {
+    errx(1, "main: parse_watch_multi: error: %s\n", (char *)RET_V);
+   }
   }
  }
 
- dump_list(ll);
-
- _r = watch_open_from_list(b.wfd, ll);
- if(RET_ISOK != RET_BOOL_TRUE) {
-  errx(1, "watch_open_from_list: error: %s\n", (char *)RET_V);
- }
-
- _r = watch_assign_to_blob_from_list(&b, ll);
- if(RET_ISOK != RET_BOOL_TRUE) {
-  errx(1, "watch_assign_to_blob_from_list: error: %s\n", (char *)RET_V);
+ for(i=0;i<MAX_BUCKETS;i++) {
+  if(b.w[i] != NULL) {
+   dump_watch(b.w[i]);
+  }
  }
 
  _r = watch_loop(&b);
 
-// ev_io_start(loop, &watch_ev);
-// ev_loop(loop, 0);
  return EXIT_SUCCESS;
 }

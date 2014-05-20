@@ -28,12 +28,6 @@ ret_t parse_redis(char *s) {
  }
  
  r->port = atoi(p);
-/*
- r->h = redisConnect(r->host, r->port);
- if(!r->h) {
-  RET_ERROR("redisConnect failed");
- }
-*/
  _r = r_connect(r->host, r->port);
  if(RET_ISOK != RET_BOOL_TRUE) {
   errx(1, "parse_redis: r_connect failed: This shouldn't happen\n");
@@ -91,13 +85,13 @@ ret_t parse_event_masks(char *s, int *m) {
 /*
  * class, queue, events, source, filter
  */
-ret_t parse_watch_single(list_t *ll, watch_citizen_t citizen, watch_t *wp, char *class, char *queue, char *events, char *source, char *filter, regex_t *re_filter, int mask, int depth, int recursive_onoff) {
+ret_t parse_watch_single(blob_t *b, watch_citizen_t citizen, watch_t *wp, char *class, char *queue, char *events, char *source, char *filter, regex_t *re_filter, int mask, int depth, int recursive_onoff) {
  watch_t *w;
  struct stat st;
  DIR *dir;
  RET_INIT;
 
- if(!ll || !class || !queue || !events || !source) {
+ if(!b || !class || !queue || !events || !source) {
   RET_ERROR("parse_watch_single invalid");
  }
 
@@ -112,49 +106,50 @@ ret_t parse_watch_single(list_t *ll, watch_citizen_t citizen, watch_t *wp, char 
   RET_OK(NULL);
  }
 
- _r = watch_init(citizen, wp, class, queue, events, source, filter, mask);
+ _r = watch_init(citizen, wp, class, queue, events, source, filter, mask, recursive_onoff);
  if(RET_ISOK != RET_BOOL_TRUE) {
   RET_ERROR("watch_init failed");
  }
 
- w = RET_V;
+ w = (watch_t *) RET_V;
  if(!w) {
   RET_ERROR("w == null");
  }
 
- _r = list_insert(ll, w);
- if(RET_ISOK != RET_BOOL_TRUE) {
-  RET_ERROR("list_insert: failed");
- }
-
  if(S_ISDIR(st.st_mode)) {
+
+  _r = watch_open(b, w);
+  if(RET_ISOK != RET_BOOL_TRUE) {
+   RET_ERROR("parse_watch_single: watch_open failed");
+  }
+  _r = watch_put(b, w);
+  if(RET_ISOK != RET_BOOL_TRUE) {
+   RET_ERROR("parse_watch_single: watch_put failed");
+  }
+
   dir = opendir(source);
   if(dir) {
    struct dirent *dp;
    while((dp = readdir(dir)) != NULL) {
     int len = strlen(dp->d_name);
-/*
-    if(DT_DIR != dp->d_type) {
-puts("5");
-     continue;
-    }
-*/
     if((len == 1 && dp->d_name[0] == '.') || (len == 2 && dp->d_name[0] == '.' && dp->d_name[1] == '.')) {
      continue;
     }
+
     if(1) {
      struct stat st_n;
      char buf[strlen(source) + 1 + strlen(dp->d_name) + 2];
      int n;
      n = snprintf(buf, sizeof(buf)-1, "%s/%s", source, dp->d_name);
      buf[n] = '\0';
+
      if(stat(buf, &st_n) < 0) {
       continue;
      }
      if(!S_ISDIR(st_n.st_mode)) {
       continue;
      }
-     _r = parse_watch_single(ll, WATCH_CITIZEN_CHILD, w, class, queue, events, buf, filter, w->filter_re, mask, depth+1, recursive_onoff);
+     _r = parse_watch_single(b, WATCH_CITIZEN_CHILD, w, class, queue, events, buf, filter, w->filter_re, mask, depth+1, recursive_onoff);
     }
    }
   }
@@ -163,10 +158,14 @@ puts("5");
 }
 
 
-ret_t parse_watch_multi(list_t *ll, char *s) {
+ret_t parse_watch_multi(blob_t *b, char *s) {
  int mask, recursive_onoff = 1;
  char *p, *class, *queue, *events, *sources, *filter;
  RET_INIT;
+
+ if(!b) {
+  RET_ERROR("parse_watch_multi: invalid arguments");
+ }
 
  if(!s) {
   RET_ERROR("null argument");
@@ -222,7 +221,7 @@ ret_t parse_watch_multi(list_t *ll, char *s) {
  }
 
  while(p) {
-  _r = parse_watch_single(ll, WATCH_CITIZEN_PARENT, NULL, class, queue, events, p, filter, NULL, mask, 0, recursive_onoff);
+  _r = parse_watch_single(b, WATCH_CITIZEN_PARENT, NULL, class, queue, events, p, filter, NULL, mask, 0, recursive_onoff);
   if(RET_ISOK != RET_BOOL_TRUE) {
    printf("parse_watch_multi: error adding: %s\n", p);
   }

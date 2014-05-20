@@ -24,6 +24,7 @@ void dump_stats(stats_t *s) {
   "\tbadIoctl: %llu\n"
   "\tfionreadBytes: %llu\n"
   "\treadBytes: %llu\n"
+  "\twatchers: %llu\n"
   ,
   s->goodEvent,
   s->badEvent,
@@ -40,7 +41,8 @@ void dump_stats(stats_t *s) {
   s->badRead,
   s->badIoctl,
   s->fionreadBytes,
-  s->readBytes
+  s->readBytes,
+  s->watchers
  );
 
  return;

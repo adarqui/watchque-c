@@ -53,6 +53,7 @@ typedef struct watch {
  // space hack -> allocate this once, share it among all 'children' of the parent watch_t
  regex_t *filter_re;
  watch_citizen_t member;
+ unsigned char recursive;
 } watch_t;
 
 
@@ -93,6 +94,7 @@ typedef struct stats {
  unsigned long long badIoctl;
  unsigned long long fionreadBytes;
  unsigned long long readBytes;
+ unsigned long long watchers;
 } stats_t;
 
 
@@ -125,12 +127,16 @@ stats_t global_stats;
 
 ret_t watch_cb(blob_t *, char *, int);
 ret_t watch_loop(blob_t *);
-ret_t watch_open(int, watch_t *);
-ret_t watch_open_from_list(int, list_t *);
-ret_t watch_assign_to_blob_from_list(blob_t *, list_t *);
-ret_t watch_init(watch_citizen_t, watch_t *, char *, char *, char *, char *, char *, int);
+ret_t watch_open(blob_t *, watch_t *);
+//ret_t watch_open_from_list(int, list_t *);
+//ret_t watch_assign_to_blob_from_list(blob_t *, list_t *);
+ret_t watch_init(watch_citizen_t, watch_t *, char *, char *, char *, char *, char *, int, int);
 ret_t watch_cloneRef(watch_t *, char *);
 ret_t watch_fini(watch_t *);
+ret_t watch_put(blob_t *, watch_t *);
+ret_t watch_get(blob_t *, int);
+ret_t watch_delete(blob_t *, watch_t *);
+ret_t watch_add_directory(blob_t *, watch_t *, char *);
 
 
 #include "main.h"
