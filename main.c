@@ -12,10 +12,13 @@ int main(int argc, char *argv[], char *env[]) {
 
  /* some maintenance, initialization */
  signal(SIGINT, sigint_handler);
+
+/* old, not needed, but leaving commented
  _r = set_max_queued_events(MAX_EVENTS - 1);
  if(RET_ISOK != RET_BOOL_TRUE) {
    errx(1, "main: set_max_queued_events: %s\n", (char *)RET_V);
  }
+*/
  memset(&b, 0, sizeof(b));
  b.s = &global_stats;
  b.wfd = inotify_init();
