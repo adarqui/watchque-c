@@ -56,6 +56,7 @@ typedef struct watch {
 typedef struct redis {
 	char *host;
 	int port;
+	int db; // optional database
 	// h = handle
 	redisContext *h;
 } redis_t;

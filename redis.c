@@ -28,7 +28,7 @@ ret_t r_multi(redis_t * r)
 	}
 
 	while (!(rr = redisCommand(r->h, "MULTI"))) {
-		_r = r_connect(r->host, r->port);
+		_r = r_connect(r->host, r->port, r->db);
 		if (RET_ISOK == RET_BOOL_TRUE) {
 			r->h = (redisContext *) RET_V;
 		}
@@ -49,7 +49,7 @@ ret_t r_exec(redis_t * r)
 	}
 
 	while (!(rr = redisCommand(r->h, "EXEC"))) {
-		_r = r_connect(r->host, r->port);
+		_r = r_connect(r->host, r->port, r->db);
 		if (RET_ISOK == RET_BOOL_TRUE) {
 			r->h = (redisContext *) RET_V;
 		}
@@ -70,7 +70,7 @@ ret_t r_sadd(redis_t * r, watch_t * w)
 	}
 
 	while (!(rr = redisCommand(r->h, "SADD resque:queues %s", w->queue))) {
-		_r = r_connect(r->host, r->port);
+		_r = r_connect(r->host, r->port, r->db);
 		if (RET_ISOK == RET_BOOL_TRUE) {
 			r->h = (redisContext *) RET_V;
 		}
@@ -105,7 +105,7 @@ ret_t r_enqueue(redis_t * r, watch_t * w, struct inotify_event *ie)
 	       (rr =
 		redisCommand(r->h, "RPUSH %s %s", w->queue_pre_formatted,
 			     (char *)RET_V))) {
-		_r = r_connect(r->host, r->port);
+		_r = r_connect(r->host, r->port, r->db);
 		if (RET_ISOK == RET_BOOL_TRUE) {
 			r->h = (redisContext *) RET_V;
 		}
@@ -117,9 +117,10 @@ ret_t r_enqueue(redis_t * r, watch_t * w, struct inotify_event *ie)
 	RET_OK(NULL);
 }
 
-ret_t r_connect(char *host, int port)
+ret_t r_connect(char *host, int port, int db)
 {
 	redisContext *h;
+	redisReply *rr;
 	stats_t *s;
 	RET_INIT;
 
@@ -131,6 +132,11 @@ ret_t r_connect(char *host, int port)
 	while (1) {
 		h = redisConnect(host, port);
 		if (h) {
+			rr = redisCommand(h, "SELECT %d", db);
+			if (!rr) {
+				RET_ERROR("wtf?");
+			}
+			freeReplyObject(rr);
 			RET_OK(h);
 		}
 		s = &global_stats;

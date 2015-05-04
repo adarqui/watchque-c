@@ -19,16 +19,23 @@ ret_t parse_redis(char *s)
 	if (!p) {
 		RET_ERROR("missing host:port tuple");
 	}
-
 	r->host = strdup(p);
 
-	p = strtok(NULL, "");
+	p = strtok(NULL, ":");
 	if (!p) {
 		RET_ERROR("missing port");
 	}
-
 	r->port = atoi(p);
-	_r = r_connect(r->host, r->port);
+
+	/* optional redis database */
+	p = strtok(NULL, "");
+	if (!p) {
+		r->db = 0;
+	} else {
+		r->db = atoi(p);
+	}
+
+	_r = r_connect(r->host, r->port, r->db);
 	if (RET_ISOK != RET_BOOL_TRUE) {
 		errx(1,
 		     "parse_redis: r_connect failed: This shouldn't happen\n");
