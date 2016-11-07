@@ -249,7 +249,7 @@ ret_t watch_cb(blob_t * b, char *buf, int n)
 				}
 
 				if (ie->mask & w->mask) {
-					_r = r_enqueue(b->r, w, ie);
+					_r = r_enqueue(b->r, w, ie, b->f);
 				}
 
 			}

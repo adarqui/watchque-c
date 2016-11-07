@@ -63,6 +63,7 @@ typedef struct redis {
 
 typedef struct flags {
 	unsigned char d;
+    unsigned char * meta;
 } flags_t;
 
 typedef struct watch_lim {

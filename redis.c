@@ -82,7 +82,7 @@ ret_t r_sadd(redis_t * r, watch_t * w)
 	RET_OK(NULL);
 }
 
-ret_t r_enqueue(redis_t * r, watch_t * w, struct inotify_event *ie)
+ret_t r_enqueue(redis_t * r, watch_t * w, struct inotify_event *ie, flags_t flags)
 {
 	redisReply *rr;
 	RET_INIT;
@@ -96,7 +96,7 @@ ret_t r_enqueue(redis_t * r, watch_t * w, struct inotify_event *ie)
 		RET_ERROR("mask_to_event");
 	}
 
-	_r = event_to_json(w, ie, (char *)RET_V);
+	_r = event_to_json(w, ie, (char *)RET_V, flags);
 	if (RET_ISOK != RET_BOOL_TRUE) {
 		RET_ERROR("event_to_json error");
 	}

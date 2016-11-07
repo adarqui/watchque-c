@@ -20,7 +20,7 @@ ret_t mask_to_event(int m, int n)
 	RET_ERROR("unknown");
 }
 
-ret_t event_to_json(watch_t * w, struct inotify_event *ie, char *mask_s)
+ret_t event_to_json(watch_t * w, struct inotify_event *ie, char *mask_s, flags_t flags)
 {
 	static char buf[512];
 	RET_INIT;
@@ -29,8 +29,8 @@ ret_t event_to_json(watch_t * w, struct inotify_event *ie, char *mask_s)
 	}
 
 	snprintf(buf, sizeof(buf) - 1,
-		 "{\"class\":\"%s\",\"args\":[{\"filePath\":\"%s/%s\",\"event\":\"%s\"}]}",
-		 w->class, w->sources, ie->name, mask_s);
+		 "{\"class\":\"%s\",\"args\":[{\"filePath\":\"%s/%s\",\"event\":\"%s\",\"meta\":\"%s\"}]}",
+		 w->class, w->sources, ie->name, mask_s, flags.meta);
 
 	RET_OK(buf);
 }
