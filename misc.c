@@ -1,4 +1,5 @@
 #include "watch.h"
+#include "version.h"
 
 void usage(void)
 {
@@ -8,6 +9,7 @@ void usage(void)
          "  --debug=N where N = debug level\n" \
          "  --meta=<metadata string>\n" \
          "  --post=<rpush,lpush,publish>\n" \
+         "VERSION: %s\n" \
          "EOF"
-    );
+    , VERSION);
 }

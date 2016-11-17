@@ -18,6 +18,7 @@ watchque: usage: ./watchque [<redishost:port[:redisdb]>|</path/to/bin/dir>] <met
   --debug=N where N = debug level
   --meta=<metadata string>
   --post=<rpush,lpush,publish>
+VERSION 1.1
 EOF
 ```
 
