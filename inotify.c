@@ -1,21 +1,21 @@
 #include "inotify.h"
 
-ret_t mask_to_event(int m, int n)
+ret_t mask_to_event(int m, int ie)
 {
 	RET_INIT;
 
-	if (m & WATCH_MASK_CREATE) {
-		RET_OK("CREATE");
-	}
-	if (m & WATCH_MASK_UPDATE) {
-		RET_OK("UPDATE");
-	}
-	if (m & WATCH_MASK_DELETE) {
-		RET_OK("DELETE");
-	}
-	if (m & WATCH_MASK_CLOSE_WRITE) {
-		RET_OK("CLOSE_WRITE");
-	}
+    switch (ie) {
+        case IN_CREATE:      RET_OK("CREATE");
+        case IN_MOVED_TO:    RET_OK("CREATE");
+        case IN_MODIFY:      RET_OK("UPDATE");
+        case IN_ATTRIB:      RET_OK("UPDATE");
+        case IN_DELETE:      RET_OK("DELETE");
+        case IN_DELETE_SELF: RET_OK("DELETE");
+        case IN_MOVE_SELF:   RET_OK("RENAME");
+        case IN_MOVED_FROM:  RET_OK("RENAME");
+        case IN_CLOSE_WRITE: RET_OK("CLOSE_WRITE");
+        default:             RET_ERROR("unknown");
+    }
 
 	RET_ERROR("unknown");
 }

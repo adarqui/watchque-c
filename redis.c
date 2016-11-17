@@ -102,6 +102,8 @@ ret_t r_enqueue(redis_t * r, watch_t * w, struct inotify_event *ie, flags_t flag
 		RET_ERROR("enqueue error");
 	}
 
+    DEBUG("w=>mask: %i, ie->mask: %i\n", w->mask, ie->mask);
+
 	_r = mask_to_event(w->mask, ie->mask);
 	if (RET_ISOK != RET_BOOL_TRUE) {
 		RET_ERROR("mask_to_event");

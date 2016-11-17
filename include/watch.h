@@ -137,6 +137,9 @@ ret_t watch_get(blob_t *, int);
 ret_t watch_delete(blob_t *, watch_t *);
 ret_t watch_add_directory(blob_t *, watch_t *, char *);
 
+#define DEBUG(fmt, ...) \
+    do { if (flags.d > 0) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+
 #include "main.h"
 #include "dump.h"
 #include "parse.h"
