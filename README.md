@@ -12,6 +12,7 @@ When inotify overflow's... that sysctl fixes the issue.
 
 ## example usage
 
+```
 root@local:~/watchque-c# ./watchque
 watchque: usage: ./watchque [<redishost:port[:redisdb]>|</path/to/bin/dir>] <metadata> <Class1>:<Queue1>:<Events>:<Directory1,...,DirectoryN> ... <ClassN>:<QueueN>:<Events>:<Directory1, ...,DirectoryN>
 * flags:
