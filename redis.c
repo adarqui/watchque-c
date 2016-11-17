@@ -82,6 +82,17 @@ ret_t r_sadd(redis_t * r, watch_t * w)
 	RET_OK(NULL);
 }
 
+void * r_post(redis_t *r, char *queue, char *payload, flags_t flags) {
+    char *method = NULL;
+    switch (flags.post_method) {
+        case POST_FLAG_RPUSH: method = "RPUSH"; break;
+        case POST_FLAG_LPUSH: method = "LPUSH"; break;
+        case POST_FLAG_PUBLISH: method = "PUBLISH"; break;
+        default: method = "RPUSH"; break;
+    }
+    return redisCommand(r->h, "%s %s %s", method, queue, payload);
+}
+
 ret_t r_enqueue(redis_t * r, watch_t * w, struct inotify_event *ie, flags_t flags)
 {
 	redisReply *rr;
@@ -101,10 +112,7 @@ ret_t r_enqueue(redis_t * r, watch_t * w, struct inotify_event *ie, flags_t flag
 		RET_ERROR("event_to_json error");
 	}
 
-	while (!
-	       (rr =
-		redisCommand(r->h, "RPUSH %s %s", w->queue_pre_formatted,
-			     (char *)RET_V))) {
+	while (!(rr = r_post(r, w->queue_pre_formatted, (char *)RET_V, flags))) {
 		_r = r_connect(r->host, r->port, r->db);
 		if (RET_ISOK == RET_BOOL_TRUE) {
 			r->h = (redisContext *) RET_V;

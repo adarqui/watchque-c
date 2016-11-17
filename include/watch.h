@@ -61,9 +61,16 @@ typedef struct redis {
 	redisContext *h;
 } redis_t;
 
+typedef enum {
+	POST_FLAG_RPUSH,
+    POST_FLAG_LPUSH,
+    POST_FLAG_PUBLISH
+} POST_FLAG;
+
 typedef struct flags {
 	unsigned char d;
     unsigned char * meta;
+    POST_FLAG post_method;
 } flags_t;
 
 typedef struct watch_lim {
