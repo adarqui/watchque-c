@@ -12,9 +12,43 @@ When inotify overflow's... that sysctl fixes the issue.
 
 ## example usage
 
-```./watchque localhost:16379 --meta=poop class:queue:C:/tmp```
+root@local:~/watchque-c# ./watchque
+watchque: usage: ./watchque [<redishost:port[:redisdb]>|</path/to/bin/dir>] <metadata> <Class1>:<Queue1>:<Events>:<Directory1,...,DirectoryN> ... <ClassN>:<QueueN>:<Events>:<Directory1, ...,DirectoryN>
+* flags:
+  --debug=N where N = debug level
+  --meta=<metadata string>
+  --post=<rpush,lpush,publish>
+EOF
+```
+
+```
+./watchque localhost:6379 --meta=poop class:queue:C:/tmp
+./watchque localhost:6379 --post=publish class:queue:C:/tmp
+```
 
 ^C for stats
+
+```
+Dumping stats:
+        goodEvent: 3
+        badEvent: 0
+        goodFilter: 0
+        badFilter: 0
+        redisReConnect: 0
+        dirAdded: 0
+        dirRemoved: 0
+        cbCalled: 2
+        goodEvent / cbCalled: 1.500000
+        noWatcher: 0
+        zeroMask: 0
+        goodRead: 2
+        badRead: 0
+        badIoctl: 0
+        fionreadBytes: 96
+        readBytes: 96
+        watchers: 11
+Are you sure you want to quit? [y/n] y
+```
 
 
 

@@ -291,6 +291,17 @@ ret_t parse_flag(flags_t * f, char *s)
     } else if (!strncasecmp(s, "meta=", strlen("meta="))) {
         char *p = &s[strlen("meta=")];
         f->meta = (unsigned char *)strdup(p);
+    } else if (!strncasecmp(s, "post=", strlen("post="))) {
+        char * method = &s[strlen("post=")];
+        if (!strcasecmp(method, "rpush")) {
+            f->post_method = POST_FLAG_RPUSH;
+        } else if(!strcasecmp(method, "lpush")) {
+            f->post_method = POST_FLAG_LPUSH;
+        } else if(!strcasecmp(method, "publish")) {
+            f->post_method = POST_FLAG_PUBLISH;
+        } else {
+            RET_ERROR("unknown post method");
+        }
 	} else {
 		RET_ERROR("unknown option");
 	}

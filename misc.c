@@ -7,6 +7,7 @@ void usage(void)
          "* flags:\n" \
          "  --debug=N where N = debug level\n" \
          "  --meta=<metadata string>\n" \
+         "  --post=<rpush,lpush,publish>\n" \
          "EOF"
     );
 }
