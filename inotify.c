@@ -6,13 +6,13 @@ ret_t mask_to_event(int m, int ie)
 
     switch (ie) {
         case IN_CREATE:      RET_OK("CREATE");
-        case IN_MOVED_TO:    RET_OK("CREATE");
         case IN_MODIFY:      RET_OK("UPDATE");
         case IN_ATTRIB:      RET_OK("UPDATE");
         case IN_DELETE:      RET_OK("DELETE");
         case IN_DELETE_SELF: RET_OK("DELETE");
         case IN_MOVE_SELF:   RET_OK("RENAME");
         case IN_MOVED_FROM:  RET_OK("RENAME");
+        case IN_MOVED_TO:    RET_OK("MOVED");
         case IN_CLOSE_WRITE: RET_OK("CLOSE_WRITE");
         default:             RET_ERROR("unknown");
     }

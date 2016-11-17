@@ -12,6 +12,7 @@ void usage(void)
          "  u - Update\n" \
          "  d - Delete\n" \
          "  r - Rename\n" \
+         "  m - Moved\n" \
          "\n" \
          "* flags:\n" \
          "  --debug=N where N = debug level\n" \

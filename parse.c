@@ -76,6 +76,10 @@ ret_t parse_event_masks(char *s, int *m)
 				*m |= WATCH_MASK_RENAME;
 				break;
 			}
+        case 'm':{
+                *m |= WATCH_MASK_MOVED;
+                break;
+            }
 		case 'N':{
 				break;
 			}
