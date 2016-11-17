@@ -149,7 +149,7 @@ ret_t watch_cb(blob_t * b, char *buf, int n)
 
 	while (ni < n) {
 
-		ie = (buf) + ni;
+		ie = (struct inotify_event *) (buf + ni);
 		ni += sizeof(struct inotify_event) + ie->len;
 
 //dump_inotify_event(ie);

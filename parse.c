@@ -290,7 +290,7 @@ ret_t parse_flag(flags_t * f, char *s)
 		f->d = n;
     } else if (!strncasecmp(s, "meta=", strlen("meta="))) {
         char *p = &s[strlen("meta=")];
-        f->meta = strdup(p);
+        f->meta = (unsigned char *)strdup(p);
 	} else {
 		RET_ERROR("unknown option");
 	}

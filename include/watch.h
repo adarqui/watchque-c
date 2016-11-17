@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <ev.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <ret.h>
 #include <dirent.h>
@@ -17,7 +18,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <linux/inotify.h>
+#include <sys/inotify.h>
 
 #define MAX_EVENTS 500000
 #define MAX_BUCKETS MAX_EVENTS+1	// flaccid
