@@ -3,6 +3,6 @@
 
 #include "watch.h"
 
-void sigint_handler(int);
+void sigint_handler (int);
 
 #endif

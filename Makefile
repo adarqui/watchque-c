@@ -8,4 +8,5 @@ clean:
 	rm -f watchque
 
 indent:
-	indent -kr *.c include/*.h
+	indent -gnu *.c include/*.h
+	rm -f *.c~ include/*.h~

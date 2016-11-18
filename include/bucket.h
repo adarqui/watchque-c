@@ -3,6 +3,6 @@
 
 #include "bucket.h"
 
-ret_t bucket_init(int);
+ret_t bucket_init (int);
 
 #endif

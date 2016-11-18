@@ -3,6 +3,6 @@
 
 #include "watch.h"
 
-void usage(void);
+void usage (void);
 
 #endif
