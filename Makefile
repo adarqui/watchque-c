@@ -6,3 +6,6 @@ static:
 
 clean:
 	rm -f watchque
+
+indent:
+	indent -kr *.c include/*.h
